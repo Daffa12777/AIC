@@ -1,0 +1,113 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { getDashboard } from "@/lib/api";
+import type { DashboardSummary } from "@/types";
+
+const STATS: { key: keyof DashboardSummary; label: string }[] = [
+  { key: "total_datasets", label: "Dataset Diunggah" },
+  { key: "total_forecasts_run", label: "Prediksi Energi" },
+  { key: "total_cost_analyses", label: "Analisis Biaya" },
+  { key: "total_anomaly_scans", label: "Pemindaian Anomali" },
+];
+
+const CAPABILITIES = [
+  { title: "Prediksi Konsumsi Energi", desc: "Proyeksi pemakaian listrik per lini produksi berdasarkan pola historis." },
+  { title: "Estimasi Biaya Produksi", desc: "Perhitungan biaya per satuan dari proyeksi energi dan bahan baku." },
+  { title: "Deteksi Anomali Energi", desc: "Identifikasi lonjakan konsumsi listrik yang mengindikasikan pemborosan." },
+  { title: "Rekomendasi Operasional", desc: "Ringkasan keputusan dan langkah tindakan berbasis seluruh analisis." },
+];
+
+export default function DashboardPage() {
+  const [summary, setSummary] = useState<DashboardSummary | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    getDashboard().then(setSummary).catch(() =>
+      setError("Gagal memuat data ringkasan. Pastikan layanan backend berjalan.")
+    );
+  }, []);
+
+  return (
+    <div>
+      {/* Hero */}
+      <section className="mb-16">
+        <p className="eyebrow mb-4">AI Decision Support · Aluminium Manufacturing</p>
+        <h1 className="text-5xl md:text-6xl leading-[1.05] text-navy-900 max-w-3xl mb-6">
+          Mengubah data energi menjadi keputusan produksi yang lebih cerdas.
+        </h1>
+        <p className="text-[17px] text-steel-400 max-w-2xl leading-relaxed mb-8">
+          AlumiSight AI membantu pabrik dan smelter aluminium memprediksi konsumsi energi,
+          mengestimasi biaya produksi, dan mendeteksi pemborosan — lalu menyusunnya menjadi
+          rekomendasi operasional yang jelas.
+        </p>
+        <div className="flex gap-3">
+          <Link href="/upload" className="btn-primary">Mulai dengan Unggah Data</Link>
+          <Link href="/forecast" className="btn-ghost">Lihat Prediksi Energi</Link>
+        </div>
+      </section>
+
+      {error && (
+        <div className="card-tint p-4 mb-8">
+          <p className="text-[14px] text-navy-700">{error}</p>
+        </div>
+      )}
+
+      {/* Statistik ringkas */}
+      {summary && (
+        <section className="mb-16">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-cream-300 border border-cream-300 rounded-xl overflow-hidden">
+            {STATS.map((s) => (
+              <div key={s.key} className="bg-white px-6 py-7">
+                <p className="text-4xl text-navy-900 mb-1">{summary[s.key] as number}</p>
+                <p className="text-[12px] uppercase tracking-wide text-steel-400">{s.label}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Kapabilitas */}
+      <section className="mb-16">
+        <p className="eyebrow mb-6">Kapabilitas Sistem</p>
+        <div className="grid md:grid-cols-2 gap-px bg-cream-300 border border-cream-300 rounded-xl overflow-hidden">
+          {CAPABILITIES.map((c, i) => (
+            <div key={c.title} className="bg-white p-7">
+              <div className="flex items-baseline gap-3 mb-2">
+                <span className="text-[13px] text-steel-300 tabular-nums">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <h3 className="text-xl text-navy-900">{c.title}</h3>
+              </div>
+              <p className="text-[15px] text-steel-400 leading-relaxed pl-8">{c.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Aktivitas terbaru */}
+      {summary && (
+        <section>
+          <p className="eyebrow mb-4">Aktivitas Terbaru</p>
+          <div className="card p-6">
+            {summary.recent_activity.length === 0 ? (
+              <p className="text-[15px] text-steel-300">
+                Belum ada aktivitas. Mulai dengan mengunggah dataset produksi dan energi.
+              </p>
+            ) : (
+              <ul className="divide-y divide-cream-200">
+                {summary.recent_activity.map((a, idx) => (
+                  <li key={idx} className="py-3 flex justify-between text-[14px]">
+                    <span className="capitalize text-navy-800">{String(a.action)}</span>
+                    <span className="text-steel-300 tabular-nums">{String(a.created_at)}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </section>
+      )}
+    </div>
+  );
+}

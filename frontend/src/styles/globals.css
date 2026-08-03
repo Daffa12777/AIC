@@ -1,0 +1,56 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-cream-100 text-navy-900;
+    font-family: "Times New Roman", Times, Georgia, serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3, h4 {
+    font-family: "Times New Roman", Times, Georgia, serif;
+    letter-spacing: -0.01em;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-white border border-cream-300 rounded-xl shadow-card;
+  }
+  .card-tint {
+    @apply bg-navy-50 border border-navy-100 rounded-xl;
+  }
+  .eyebrow {
+    @apply text-[11px] uppercase tracking-eyebrow text-steel-400;
+  }
+  .field-label {
+    @apply block text-[13px] text-navy-700 mb-1.5;
+  }
+  .field-hint {
+    @apply text-[12px] text-steel-300 mt-1.5;
+  }
+  .input-field {
+    @apply w-full bg-cream-50 border border-cream-300 rounded-lg px-3.5 py-2.5 text-[15px] text-navy-900
+    placeholder:text-steel-300 focus:outline-none focus:border-navy-400 focus:ring-1 focus:ring-navy-200
+    transition-colors;
+  }
+  .btn-primary {
+    @apply inline-flex items-center justify-center px-6 py-2.5 bg-navy-800 text-cream-50 rounded-lg
+    text-[14px] tracking-wide hover:bg-navy-900 disabled:opacity-40 disabled:cursor-not-allowed
+    transition-colors;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center px-6 py-2.5 border border-navy-300 text-navy-800
+    rounded-lg text-[14px] hover:bg-navy-800 hover:text-cream-50 hover:border-navy-800 transition-colors;
+  }
+  .badge {
+    @apply inline-flex items-center px-2.5 py-1 rounded-md text-[12px] border;
+  }
+  .divider {
+    @apply border-t border-cream-300;
+  }
+}

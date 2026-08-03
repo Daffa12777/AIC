@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+venv/
+.env
+dev.db
+storage/
+models/
+node_modules/
+.next/
+*.joblib
+.DS_Store
