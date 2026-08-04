@@ -8,6 +8,17 @@ Dikembangkan untuk **AI Innovation Challenge (AIC) COMPFEST 18**, subtema **Smar
 
 ---
 
+## Prasyarat
+
+Untuk menjalankan dengan Docker (cara yang disarankan), cukup:
+
+- **Git**
+- **Docker Desktop** (pastikan sudah berjalan / status *Engine running*)
+
+Tidak perlu memasang Python, Node.js, atau PostgreSQL secara manual — semuanya sudah dibungkus di dalam container.
+
+---
+
 ## Arsitektur
 
 Proyek terdiri atas tiga komponen modular:
@@ -20,16 +31,44 @@ Proyek terdiri atas tiga komponen modular:
 
 ## Menjalankan dengan Docker (disarankan)
 
-Pastikan Docker Desktop berjalan, lalu:
+1. Clone repositori dan masuk ke foldernya:
 
 ```bash
-docker compose up --build
+   git clone https://github.com/Daffa12777/AIC.git
+   cd AIC
 ```
+
+2. Siapkan berkas environment untuk backend:
+
+```bash
+   # Windows (PowerShell):
+   Copy-Item backend\.env.example backend\.env
+
+   # macOS/Linux:
+   cp backend/.env.example backend/.env
+```
+
+   Buka `backend/.env` dan isi `NEWSAPI_KEY` bila ingin mengaktifkan fitur Market Intelligence (opsional — fitur lain tetap berjalan tanpa key ini).
+
+3. Pastikan Docker Desktop berjalan, lalu:
+
+```bash
+   docker compose up --build
+```
+
+   Build pertama memakan waktu beberapa menit (mengunduh image dan memasang dependency).
 
 Setelah seluruh service siap:
 
 - Dashboard: http://localhost:3000
 - API (dokumentasi Swagger): http://localhost:8000/docs
+
+Untuk menghentikan:
+
+```bash
+# Tekan Ctrl + C di terminal, lalu:
+docker compose down
+```
 
 ---
 
@@ -48,6 +87,12 @@ source venv/bin/activate
 pip install -r requirements.txt
 
 # Konfigurasi environment (contoh untuk SQLite lokal)
+# Windows (PowerShell):
+$env:DATABASE_URL="sqlite:///./dev.db"
+$env:PYTHONPATH="..\ml-engine;..\backend"
+$env:UPLOAD_DIR="./storage"
+
+# macOS/Linux:
 export DATABASE_URL="sqlite:///./dev.db"
 export PYTHONPATH="../ml-engine:../backend"
 export UPLOAD_DIR="./storage"
@@ -64,7 +109,13 @@ Pada terminal terpisah:
 ```bash
 cd frontend
 npm install
+
+# Windows (PowerShell):
+$env:NEXT_PUBLIC_API_URL="http://localhost:8000"
+
+# macOS/Linux:
 export NEXT_PUBLIC_API_URL="http://localhost:8000"
+
 npm run dev
 ```
 
@@ -86,29 +137,3 @@ Dashboard berjalan di http://localhost:3000
 ---
 
 ## Alur Data
-
-```
-Upload → Smart Data Adapter → Preprocessing → Feature Engineering
-      → Forecast Engine (energi) → Cost Estimator
-      → Anomaly Detection → Recommendation Engine → Dashboard
-```
-
-## Teknologi
-
-| Bagian | Teknologi |
-|---|---|
-| Frontend | Next.js, TypeScript, Tailwind CSS |
-| Backend | FastAPI, SQLAlchemy |
-| Machine Learning | scikit-learn, XGBoost, LightGBM |
-| Anomaly Detection | Isolation Forest |
-| Database | PostgreSQL (Docker) / SQLite (lokal) |
-| Deployment | Docker, Docker Compose |
-
-## Skema Kolom
-
-Setelah Smart Data Adapter, dataset dipetakan ke skema standar:
-
-- **Wajib:** `date` (tanggal), `period` (lini produksi), `energy` (konsumsi energi kWh)
-- **Opsional:** `production_volume`, `raw_material_cost`, `unit_cost`
-
-Smart Data Adapter memetakan nama kolom apa pun secara otomatis melalui dictionary mapping dan fuzzy matching, sehingga berkas dari berbagai perusahaan tetap dapat diproses tanpa penyesuaian manual.
