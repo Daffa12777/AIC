@@ -91,7 +91,7 @@ export default function ForecastPage() {
         <>
           <div className="card p-8 mb-6">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl text-navy-900">Historis & Proyeksi — {period}</h2>
+              <h2 className="text-xl text-navy-900">Historis & Proyeksi {period}</h2>
               {result.best_model && (
                 <span className="badge border-navy-200 text-navy-600 bg-navy-50">
                   Model: {result.best_model}

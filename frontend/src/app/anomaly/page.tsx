@@ -34,7 +34,7 @@ export default function AnomalyPage() {
       <p className="eyebrow mb-3">Langkah 4</p>
       <h1 className="text-4xl text-navy-900 mb-3">Deteksi Anomali Energi</h1>
       <p className="text-[16px] text-steel-400 max-w-2xl mb-10 leading-relaxed">
-        Identifikasi titik konsumsi energi yang menyimpang dari pola normal — sinyal dini
+        Identifikasi titik konsumsi energi yang menyimpang dari pola normal sinyal dini
         pemborosan atau gangguan operasional.
       </p>
 

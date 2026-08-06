@@ -96,7 +96,7 @@ export default function CostPage() {
         <>
           <div className="card p-8 mb-6">
             <div className="flex items-baseline justify-between mb-6">
-              <h2 className="text-xl text-navy-900">Estimasi — {period}</h2>
+              <h2 className="text-xl text-navy-900">Estimasi {period}</h2>
               <span className="badge border-navy-200 text-navy-600 bg-navy-50">
                 {result.periods} periode proyeksi
               </span>

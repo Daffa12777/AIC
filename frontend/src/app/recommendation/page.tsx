@@ -71,7 +71,7 @@ export default function RecommendationPage() {
         <div className="space-y-5">
           <div className="card p-8">
             <div className="flex items-center justify-between mb-5">
-              <h2 className="text-xl text-navy-900">Keputusan — {result.period}</h2>
+              <h2 className="text-xl text-navy-900">Keputusan {result.period}</h2>
               <span className={`badge ${PRIORITY[result.priority_level]}`}>
                 Prioritas {result.priority_level}
               </span>
