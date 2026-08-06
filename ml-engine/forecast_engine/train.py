@@ -73,7 +73,7 @@ def train_and_select_best_model(df: pd.DataFrame, model_output_path: Path) -> di
 
     Path(model_output_path).parent.mkdir(parents=True, exist_ok=True)
     joblib.dump(
-        {"model": best_model, "model_name": best_model_name, "feature_columns": feat_cols},
+         {"model": best_model, "model_name": best_model_name, "feature_columns": feat_cols, "metrics": metrics},
         model_output_path,
     )
 

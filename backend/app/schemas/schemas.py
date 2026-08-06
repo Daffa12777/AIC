@@ -54,6 +54,7 @@ class ForecastResponse(BaseModel):
     best_model: str | None = None
     metrics: dict | None = None
     horizon_days: int
+    historical: list[ForecastPoint] = []
     forecast: list[ForecastPoint]
     insight: EnergyInsight | None = None
 
@@ -72,6 +73,11 @@ class CostInsight(BaseModel):
     recommendation_note: str
 
 
+class CostSeriesPoint(BaseModel):
+    date: datetime
+    cost: float
+
+
 class CostResponse(BaseModel):
     dataset_id: str
     period: str
@@ -82,6 +88,8 @@ class CostResponse(BaseModel):
     estimated_cost_per_unit: float
     energy_cost_share: float
     periods: int
+    historical_cost: list[CostSeriesPoint] = []
+    forecast_cost: list[CostSeriesPoint] = []
     insight: CostInsight | None = None
 
 

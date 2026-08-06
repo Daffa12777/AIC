@@ -2,10 +2,18 @@
 
 import { useEffect, useState } from "react";
 import { runCostAnalysis } from "@/lib/api";
+import HistoricalForecastChart from "@/components/HistoricalForecastChart";
 import type { CostResult } from "@/types";
 
 function rupiah(n: number): string {
   return "Rp" + Math.round(n).toLocaleString("id-ID");
+}
+
+function rupiahShort(n: number): string {
+  if (n >= 1e9) return `${(n / 1e9).toFixed(1)}M`;
+  if (n >= 1e6) return `${(n / 1e6).toFixed(0)}jt`;
+  if (n >= 1e3) return `${(n / 1e3).toFixed(0)}rb`;
+  return String(Math.round(n));
 }
 
 export default function CostPage() {
@@ -42,6 +50,16 @@ export default function CostPage() {
         { label: "Total Biaya Produksi", value: rupiah(result.total_production_cost) },
       ]
     : [];
+
+  const historicalCost = result?.historical_cost?.map((h) => ({
+    date: h.date,
+    value: h.cost,
+  })) ?? [];
+
+  const forecastCost = result?.forecast_cost?.map((f) => ({
+    date: f.date,
+    value: f.cost,
+  })) ?? [];
 
   return (
     <div className="max-w-4xl">
@@ -112,6 +130,19 @@ export default function CostPage() {
               </div>
             </div>
           </div>
+
+          {(historicalCost.length > 0 || forecastCost.length > 0) && (
+            <div className="card p-8 mb-6">
+              <h2 className="text-xl text-navy-900 mb-6">Historis & Proyeksi Biaya Harian</h2>
+              <HistoricalForecastChart
+                historical={historicalCost}
+                forecast={forecastCost}
+                valueLabel="Biaya Produksi"
+                formatValue={(v) => rupiah(v)}
+                yAxisFormatter={rupiahShort}
+              />
+            </div>
+          )}
 
           {result.insight && (
             <div className="card p-8">

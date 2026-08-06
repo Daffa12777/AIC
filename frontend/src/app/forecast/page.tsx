@@ -1,10 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-} from "recharts";
 import { runForecast } from "@/lib/api";
+import HistoricalForecastChart from "@/components/HistoricalForecastChart";
 import type { ForecastResult } from "@/types";
 
 const TREND_BADGE: Record<string, string> = {
@@ -44,10 +42,16 @@ export default function ForecastPage() {
     }
   };
 
-  const chartData = result?.forecast.map((f) => ({
-    date: new Date(f.date).toLocaleDateString("id-ID", { day: "2-digit", month: "short" }),
-    energy: Math.round(f.energy),
-  }));
+  const historicalEnergy = result?.historical?.map((h) => ({
+    date: h.date,
+    value: h.energy,
+  })) ?? [];
+
+  const forecastEnergy = result?.forecast?.map((f) => ({
+    date: f.date,
+    value: f.energy,
+  })) ?? [];
+
   const insight = result?.insight;
 
   return (
@@ -87,27 +91,20 @@ export default function ForecastPage() {
         <>
           <div className="card p-8 mb-6">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl text-navy-900">Proyeksi — {period}</h2>
+              <h2 className="text-xl text-navy-900">Historis & Proyeksi — {period}</h2>
               {result.best_model && (
                 <span className="badge border-navy-200 text-navy-600 bg-navy-50">
                   Model: {result.best_model}
                 </span>
               )}
             </div>
-            {chartData && (
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#EDE7DA" />
-                  <XAxis dataKey="date" fontSize={12} stroke="#6B7883" />
-                  <YAxis fontSize={12} stroke="#6B7883" width={70}
-                    tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
-                  <Tooltip
-                    contentStyle={{ fontFamily: "Times New Roman", borderColor: "#DDD4C2", borderRadius: 8 }}
-                    formatter={(v: number) => [`${v.toLocaleString("id-ID")} kWh`, "Energi"]} />
-                  <Line type="monotone" dataKey="energy" stroke="#132135" strokeWidth={2} dot={false} />
-                </LineChart>
-              </ResponsiveContainer>
-            )}
+            <HistoricalForecastChart
+              historical={historicalEnergy}
+              forecast={forecastEnergy}
+              valueLabel="Energi (kWh)"
+              formatValue={(v) => `${v.toLocaleString("id-ID")} kWh`}
+              yAxisFormatter={(v) => `${(v / 1000).toFixed(0)}k`}
+            />
             {result.metrics && (
               <div className="grid grid-cols-3 gap-3 mt-6 text-[13px]">
                 {Object.entries(result.metrics).map(([m, v]) => (

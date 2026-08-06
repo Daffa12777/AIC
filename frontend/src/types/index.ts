@@ -38,8 +38,14 @@ export interface ForecastResult {
   best_model: string | null;
   metrics: Record<string, { mae: number; rmse: number }> | null;
   horizon_days: number;
+  historical: ForecastPoint[];
   forecast: ForecastPoint[];
   insight: EnergyInsight | null;
+}
+
+export interface CostSeriesPoint {
+  date: string;
+  cost: number;
 }
 
 export interface CostInsight {
@@ -57,6 +63,8 @@ export interface CostResult {
   estimated_cost_per_unit: number;
   energy_cost_share: number;
   periods: number;
+  historical_cost: CostSeriesPoint[];
+  forecast_cost: CostSeriesPoint[];
   insight: CostInsight | null;
 }
 

@@ -45,3 +45,28 @@ def estimate_production_cost(
         "energy_cost_share": round(energy_share, 4),
         "periods": n_periods,
     }
+
+
+def build_daily_cost_series(
+    historical_df: pd.DataFrame,
+    forecast_energy: list[float],
+    forecast_dates: list,
+    energy_tariff: float,
+    avg_raw_material_cost: float,
+) -> tuple[list[dict], list[dict]]:
+    """Bangun deret biaya produksi harian: historis (aktual) + proyeksi."""
+    historical = []
+    for _, row in historical_df.sort_values("date").iterrows():
+        if "raw_material_cost" in historical_df.columns and pd.notna(row["raw_material_cost"]):
+            material = float(row["raw_material_cost"])
+        else:
+            material = avg_raw_material_cost
+        daily_cost = float(row["energy"]) * energy_tariff + material
+        historical.append({"date": row["date"], "cost": round(daily_cost, 2)})
+
+    forecast = []
+    for date, energy in zip(forecast_dates, forecast_energy):
+        daily_cost = float(energy) * energy_tariff + avg_raw_material_cost
+        forecast.append({"date": date, "cost": round(daily_cost, 2)})
+
+    return historical, forecast

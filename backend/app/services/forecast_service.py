@@ -62,9 +62,13 @@ def run_forecast(db: Session, dataset_id: str, periods: list[str] | None, horizo
 
     if train_metrics is None:
         import joblib
-        best_model_name = joblib.load(model_path).get("model_name")
+        cached = joblib.load(model_path)
+        best_model_name = cached.get("model_name")
+        train_metrics = cached.get("metrics")
 
     insight = generate_energy_insight(forecast_df["energy"].values, best_model_name, train_metrics)
+
+    historical_df = training_df[["date", "period", "energy"]].sort_values("date")
 
     db.add(ForecastResult(
         dataset_id=dataset_id, best_model=best_model_name, metrics=train_metrics,
@@ -79,12 +83,13 @@ def run_forecast(db: Session, dataset_id: str, periods: list[str] | None, horizo
         "best_model": best_model_name,
         "metrics": train_metrics,
         "horizon_days": horizon_days,
+        "historical": historical_df.to_dict(orient="records"),
         "forecast": forecast_df.to_dict(orient="records"),
         "insight": insight,
     }
 
 
-def get_energy_forecast_series(db: Session, dataset_id: str, period: str, horizon_days: int) -> tuple[list[float], pd.DataFrame]:
+def get_energy_forecast_series(db: Session, dataset_id: str, period: str, horizon_days: int) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Ambil deret forecast energi untuk satu period (dipakai cost & recommendation)."""
     raw = _load_dataset(db, dataset_id)
     clean = clean_dataset(raw)
@@ -97,4 +102,4 @@ def get_energy_forecast_series(db: Session, dataset_id: str, period: str, horizo
         train_and_select_best_model(training_df, model_output_path=model_path)
 
     forecast_df = predict(training_df, periods=[period], horizon_days=horizon_days, model_path=model_path)
-    return forecast_df["energy"].tolist(), clean
+    return forecast_df, clean

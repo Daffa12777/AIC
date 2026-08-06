@@ -3,7 +3,7 @@ import pandas as pd
 from sqlalchemy.orm import Session
 
 from preprocessing.cleaner import clean_dataset
-from forecast_engine.cost_estimator import estimate_production_cost
+from forecast_engine.cost_estimator import estimate_production_cost, build_daily_cost_series
 from anomaly_detection.detector import detect_energy_anomalies
 from decision_report.insight_generator import generate_cost_insight
 from recommendation_engine.recommender import build_recommendation
@@ -19,21 +19,33 @@ from app.db.models import (
 
 
 def run_cost_analysis(db: Session, dataset_id: str, period: str, horizon_days: int, energy_tariff: float | None) -> dict:
-    forecast_energy, clean = get_energy_forecast_series(db, dataset_id, period, horizon_days)
+    forecast_df, clean = get_energy_forecast_series(db, dataset_id, period, horizon_days)
     sub = clean[clean["period"] == period]
 
     avg_volume = float(sub["production_volume"].mean()) if "production_volume" in sub.columns else 1.0
     avg_material = float(sub["raw_material_cost"].mean()) if "raw_material_cost" in sub.columns else 0.0
     tariff = energy_tariff if energy_tariff else settings.DEFAULT_ENERGY_TARIFF
 
+    forecast_energy = forecast_df["energy"].tolist()
     cost = estimate_production_cost(forecast_energy, avg_volume, avg_material, tariff)
     insight = generate_cost_insight(cost)
+
+    historical_cost, forecast_cost = build_daily_cost_series(
+        sub, forecast_energy, forecast_df["date"].tolist(), tariff, avg_material,
+    )
 
     db.add(CostResult(dataset_id=dataset_id, period=period, cost_data=cost))
     db.add(ActivityHistory(dataset_id=dataset_id, action="cost", detail={"period": period}))
     db.commit()
 
-    return {"dataset_id": dataset_id, "period": period, **cost, "insight": insight}
+    return {
+        "dataset_id": dataset_id,
+        "period": period,
+        **cost,
+        "historical_cost": historical_cost,
+        "forecast_cost": forecast_cost,
+        "insight": insight,
+    }
 
 
 def run_anomaly_scan(db: Session, dataset_id: str, period: str | None) -> dict:
@@ -70,9 +82,10 @@ def run_anomaly_scan(db: Session, dataset_id: str, period: str | None) -> dict:
 
 
 def run_recommendation(db: Session, dataset_id: str, period: str, horizon_days: int) -> dict:
-    forecast_energy, clean = get_energy_forecast_series(db, dataset_id, period, horizon_days)
+    forecast_df, clean = get_energy_forecast_series(db, dataset_id, period, horizon_days)
     sub = clean[clean["period"] == period]
 
+    forecast_energy = forecast_df["energy"].tolist()
     energy_insight = generate_energy_insight(pd.Series(forecast_energy).values, None, None)
 
     avg_volume = float(sub["production_volume"].mean()) if "production_volume" in sub.columns else 1.0
