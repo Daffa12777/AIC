@@ -48,8 +48,6 @@ Proyek terdiri atas tiga komponen modular:
    cp backend/.env.example backend/.env
 ```
 
-   Buka `backend/.env` dan isi `NEWSAPI_KEY` bila ingin mengaktifkan fitur Market Intelligence (opsional — fitur lain tetap berjalan tanpa key ini).
-
 3. Pastikan Docker Desktop berjalan, lalu:
 
 ```bash
