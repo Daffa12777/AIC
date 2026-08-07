@@ -25,6 +25,8 @@ services:
     environment:
       DATABASE_URL: postgresql://alumisight:alumisight@db:5432/alumisight
       UPLOAD_DIR: /app/storage
+      # (Opsional) Kamu bisa nambahin URL ml-engine ke sini biar gampang dipanggil di kode backend-mu
+      ML_ENGINE_URL: http://ml-engine:8000 
 
   frontend:
     build:
@@ -36,6 +38,21 @@ services:
       - "3000:3000"
     environment:
       NEXT_PUBLIC_API_URL: http://localhost:8000
+
+  # -----------------------------------------------------
+  # INI SERVICE AI BARU KITA
+  # -----------------------------------------------------
+  ml-engine:
+    build:
+      context: ./ml-engine
+      dockerfile: Dockerfile
+    ports:
+      # Kiri (8001): Port di komputermu
+      # Kanan (8000): Port asli FastAPI di dalam container
+      - "8001:8000"
+    volumes:
+      # Opsional: Membantu agar saat kamu ngedit file Python, dockernya auto-update
+      - ./ml-engine:/app
 
 volumes:
   pgdata:

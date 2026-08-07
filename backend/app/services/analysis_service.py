@@ -1,4 +1,6 @@
 """Service layer untuk Cost, Anomaly, Recommendation, dan Dashboard."""
+import os
+import requests # (BARU) Menggantikan import llama_cpp
 import pandas as pd
 from sqlalchemy.orm import Session
 
@@ -6,8 +8,9 @@ from preprocessing.cleaner import clean_dataset
 from forecast_engine.cost_estimator import estimate_production_cost, build_daily_cost_series
 from anomaly_detection.detector import detect_energy_anomalies
 from decision_report.insight_generator import generate_cost_insight
-from recommendation_engine.recommender import build_recommendation
 from decision_report.insight_generator import generate_energy_insight
+
+# HAPUS BARIS INI: from recommendation_engine.recommender import build_recommendation
 
 from app.core.config import settings
 from app.core.exceptions import DatasetValidationError
@@ -88,22 +91,62 @@ def run_recommendation(db: Session, dataset_id: str, period: str, horizon_days: 
     forecast_energy = forecast_df["energy"].tolist()
     energy_insight = generate_energy_insight(pd.Series(forecast_energy).values, None, None)
 
+    # Antisipasi jika energy_insight adalah objek Pydantic/Class, ubah ke Dictionary
+    if hasattr(energy_insight, "model_dump"):
+        energy_insight_dict = energy_insight.model_dump()
+    elif hasattr(energy_insight, "dict"):
+        energy_insight_dict = energy_insight.dict()
+    else:
+        energy_insight_dict = dict(energy_insight)
+
     avg_volume = float(sub["production_volume"].mean()) if "production_volume" in sub.columns else 1.0
     avg_material = float(sub["raw_material_cost"].mean()) if "raw_material_cost" in sub.columns else 0.0
     cost = estimate_production_cost(forecast_energy, avg_volume, avg_material, settings.DEFAULT_ENERGY_TARIFF)
 
     anomalies = detect_energy_anomalies(clean, period)
 
-    # Baseline: rata-rata unit_cost historis bila tersedia.
-    baseline = None
+    baseline = 0.0
     if "unit_cost" in sub.columns and sub["unit_cost"].notna().any():
         baseline = float(sub["unit_cost"].mean())
 
-    rec = build_recommendation(energy_insight, cost, len(anomalies), baseline_cost_per_unit=baseline)
+    # =========================================================================
+    # (BARU) MEMANGGIL ML-ENGINE VIA API
+    # =========================================================================
+    ml_engine_url = os.getenv("ML_ENGINE_URL", "http://ml-engine:8000")
+    
+    try:
+        response = requests.post(
+            f"{ml_engine_url}/api/recommendation",
+            json={
+                "energy_insight": energy_insight_dict,
+                "cost": cost,
+                "anomaly_count": len(anomalies),
+                "baseline": baseline
+            },
+            timeout=120 # LLM lokal butuh waktu untuk menjawab, jadi kita beri toleransi 2 menit
+        )
+        response.raise_for_status()
+        rec_data = response.json()
+        
+    except requests.exceptions.RequestException as e:
+        print(f"Error memanggil ML-Engine: {e}")
+        # Nilai default jika AI gagal membalas (mencegah backend crash)
+        rec_data = {
+            "priority_level": "Sedang",
+            "summary": "AI Recommendation Engine gagal merespons.",
+            "reasoning": f"Sistem tidak dapat terhubung ke ml-engine: {str(e)}",
+            "action_items": ["Pastikan container ml-engine menyala", "Periksa log ml-engine"],
+            "caveat": "Ini adalah pesan error fallback otomatis."
+        }
+    # =========================================================================
 
     db.add(RecommendationResult(
-        dataset_id=dataset_id, period=period, priority_level=rec.priority_level,
-        summary=rec.summary, reasoning=rec.reasoning, action_items=rec.action_items,
+        dataset_id=dataset_id, 
+        period=period, 
+        priority_level=rec_data.get("priority_level", "Sedang"),
+        summary=rec_data.get("summary", ""), 
+        reasoning=rec_data.get("reasoning", ""), 
+        action_items=rec_data.get("action_items", []),
     ))
     db.add(ActivityHistory(dataset_id=dataset_id, action="recommend", detail={"period": period}))
     db.commit()
@@ -111,11 +154,11 @@ def run_recommendation(db: Session, dataset_id: str, period: str, horizon_days: 
     return {
         "dataset_id": dataset_id,
         "period": period,
-        "priority_level": rec.priority_level,
-        "summary": rec.summary,
-        "reasoning": rec.reasoning,
-        "action_items": rec.action_items,
-        "caveat": rec.caveat,
+        "priority_level": rec_data.get("priority_level", "Sedang"),
+        "summary": rec_data.get("summary", ""),
+        "reasoning": rec_data.get("reasoning", ""),
+        "action_items": rec_data.get("action_items", []),
+        "caveat": rec_data.get("caveat", ""),
     }
 
 

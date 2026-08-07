@@ -1,92 +1,139 @@
-"""
-Recommendation Engine
-Menggabungkan hasil proyeksi energi, estimasi biaya produksi, dan deteksi
-anomali menjadi satu rekomendasi operasional yang kritis dan actionable
-dalam Bahasa Indonesia (berbasis rule, tanpa LLM agar ringan & deterministik).
-"""
-from dataclasses import dataclass
+import json
+import re
+from llama_cpp import Llama
+import os
 
-from config.settings import COST_THRESHOLD_LOW, COST_THRESHOLD_HIGH
+# 1. Load Model GGUF
+MODEL_PATH = os.path.join(os.path.dirname(__file__), "../models/unsloth.Q4_K_M.gguf")
 
+llm = Llama(
+    model_path=MODEL_PATH,
+    n_ctx=2048,       
+    n_threads=4,      
+    verbose=False     
+)
 
-@dataclass
-class Recommendation:
-    priority_level: str  # "rendah" | "sedang" | "tinggi"
-    summary: str
-    reasoning: str
-    action_items: list[str]
-    caveat: str
-
-
-def _categorize_cost_deviation(deviation_ratio: float) -> str:
-    if deviation_ratio <= COST_THRESHOLD_LOW:
-        return "rendah"
-    if deviation_ratio <= COST_THRESHOLD_HIGH:
-        return "sedang"
-    return "tinggi"
-
-
-def build_recommendation(
-    energy_insight: dict,
-    cost: dict,
-    anomaly_count: int,
-    baseline_cost_per_unit: float | None = None,
-) -> Recommendation:
-    """
-    Bangun rekomendasi operasional berdasarkan gabungan sinyal.
-    """
-    cost_per_unit = cost.get("estimated_cost_per_unit", 0.0)
-
-    if baseline_cost_per_unit and baseline_cost_per_unit > 0:
-        deviation_ratio = abs(cost_per_unit - baseline_cost_per_unit) / baseline_cost_per_unit
-    else:
-        deviation_ratio = 0.0
-    priority = _categorize_cost_deviation(deviation_ratio)
-
-    # Naikkan prioritas bila terdapat anomali energi.
-    if anomaly_count >= 3 and priority == "rendah":
-        priority = "sedang"
-    if anomaly_count >= 5:
-        priority = "tinggi"
-
-    trend = energy_insight.get("trend_label", "stabil")
-    summary = (
-        f"Estimasi biaya produksi sekitar Rp{cost_per_unit:,.0f} per satuan, dengan proyeksi konsumsi "
-        f"energi cenderung {trend}. Tingkat prioritas tindakan: {priority}."
-    ).replace(",", ".")
-
-    reasoning_parts = [
-        f"Proyeksi energi menunjukkan pola {trend} dengan volatilitas "
-        f"{energy_insight.get('volatility_label', 'sedang')}.",
-        f"Biaya energi menyumbang {cost.get('energy_cost_share', 0) * 100:.0f}% dari total biaya produksi.",
-    ]
-    if anomaly_count > 0:
-        reasoning_parts.append(
-            f"Terdeteksi {anomaly_count} titik konsumsi energi anomali yang perlu ditelusuri."
-        )
-    reasoning = " ".join(reasoning_parts)
-
+def extract_data_manually(text):
+    """Fungsi Pemburu Teks: Ekstrak data secara paksa dari JSON yang rusak parah"""
+    # 1. Cari Prioritas
+    priority = "Sedang"
+    if re.search(r'(?i)tinggi', text): priority = "Tinggi"
+    elif re.search(r'(?i)rendah', text): priority = "Rendah"
+    
+    # 2. Cari Reasoning
+    reasoning = "Sistem AI berhasil menganalisis data, namun kesulitan menyusun kalimat baku."
+    res_match = re.search(r'"reasoning"\s*:\s*"([^"]+)', text, re.IGNORECASE)
+    if res_match:
+        reasoning = res_match.group(1)
+    
+    # 3. Cari Action Items
     action_items = []
-    if trend == "meningkat":
-        action_items.append("Evaluasi efisiensi lini produksi dengan konsumsi energi tertinggi.")
-        action_items.append("Pertimbangkan penjadwalan produksi pada jam tarif listrik lebih rendah.")
-    if anomaly_count > 0:
-        action_items.append("Telusuri titik anomali energi untuk mengidentifikasi pemborosan atau gangguan mesin.")
-    if cost.get("energy_cost_share", 0) >= 0.5:
-        action_items.append("Prioritaskan program efisiensi energi karena mendominasi struktur biaya.")
+    # Memburu semua teks di dalam tanda kutip yang berada setelah kata action_items
+    act_match = re.search(r'"action_items"\s*:\s*\[(.*)', text, re.IGNORECASE | re.DOTALL)
+    if act_match:
+        items_text = act_match.group(1)
+        action_items = re.findall(r'"([^"]+)"', items_text)
+        
     if not action_items:
-        action_items.append("Pertahankan pola operasional saat ini dan lanjutkan pemantauan berkala.")
+         action_items = ["Lakukan evaluasi ulang pada lini produksi berdasarkan data terbaru.", "Periksa potensi anomali energi secara manual."]
+         
+    return {
+        "priority_level": priority,
+        "reasoning": reasoning,
+        "action_items": action_items
+    }
 
-    caveat = (
+def fix_and_parse_json(text):
+    """Sistem Parsing Berlapis"""
+    text = text.strip()
+    
+    # Lapis 1: Coba parse normal (siapa tahu AI-nya sedang pintar)
+    try:
+        match = re.search(r'\{.*\}', text, re.DOTALL)
+        if match:
+            return json.loads(match.group(0))
+    except:
+        pass
+        
+    # Lapis 2: Coba perbaiki kurung penutup yang hilang
+    try:
+        match = re.search(r'\{.*', text, re.DOTALL)
+        if match:
+            json_str = match.group(0).rstrip(', \n\t')
+            for suffix in ["}", "]}", "\"]}"]:
+                try: return json.loads(json_str + suffix)
+                except: pass
+    except:
+        pass
+        
+    # Lapis 3 (Terakhir): Kalau JSON tetap hancur, bedah teksnya secara paksa!
+    return extract_data_manually(text)
+
+def generate_recommendation_from_llm(input_text):
+    inference_prompt = """<|im_start|>system
+Anda adalah konsultan AI industri yang ahli di bidang efisiensi energi pabrik.
+Output WAJIB persis seperti template JSON ini, tanpa awalan/akhiran:
+{
+  "priority_level": "Tinggi",
+  "reasoning": "Alasan prioritas.",
+  "action_items": ["Langkah 1", "Langkah 2"]
+}<|im_end|>
+<|im_start|>user
+{}<|im_end|>
+<|im_start|>assistant
+"""
+    
+    prompt = inference_prompt.replace("{}", input_text)
+    
+    response = llm(
+        prompt, 
+        max_tokens=512, 
+        temperature=0.1, 
+        stop=["<|im_end|>"] 
+    )
+    
+    output_text = response["choices"][0]["text"].strip()
+    print(f"--- OUTPUT MENTAH LLM ---\n{output_text}\n-------------------------")
+    
+    return fix_and_parse_json(output_text)
+
+def build_final_recommendation(energy_insight, cost, anomaly_count, baseline):
+    baseline_str = f"Rp{baseline:,.0f}".replace(",", ".") if baseline else "Tidak tersedia"
+    cost_per_unit = cost.get("estimated_cost_per_unit", 0)
+    cost_str = f"Rp{cost_per_unit:,.0f}".replace(",", ".")
+
+    input_text = (
+        f"Data Operasional:\n"
+        f"- Tren Konsumsi Energi: {energy_insight.get('trend_label', 'stabil')}\n"
+        f"- Volatilitas Energi: {energy_insight.get('volatility_label', 'rendah')}\n"
+        f"- Estimasi Biaya/Unit: {cost_str}\n"
+        f"- Baseline Biaya/Unit: {baseline_str}\n"
+        f"- Pangsa Biaya Energi Terhadap Total Produksi: {int(cost.get('energy_cost_share', 0) * 100)}%\n"
+        f"- Jumlah Anomali Mesin Terdeteksi: {anomaly_count}"
+    )
+
+    try:
+        parsed_json = generate_recommendation_from_llm(input_text)
+    except Exception as e:
+        print(f"LLM Parsing Error Fatal: {e}")
+        parsed_json = {"priority_level": "Sedang", "reasoning": "Mesin AI mengalami gangguan internal saat memproses output.", "action_items": ["Hubungi administrator sistem."]}
+
+    trend = energy_insight.get("trend_label", "cenderung stabil")
+    summary_text = (
+        f"Estimasi biaya produksi sekitar {cost_str} per satuan, dengan proyeksi konsumsi "
+        f"energi {trend}. Tingkat prioritas tindakan: {parsed_json.get('priority_level', 'Sedang')}."
+    )
+    
+    caveat_text = (
         "Rekomendasi ini didasarkan pada proyeksi data historis dan tidak memperhitungkan faktor "
         "eksternal seperti perubahan tarif listrik mendadak, gangguan pasokan bahan baku, atau kebijakan "
         "energi. Evaluasi ulang disarankan secara berkala seiring tersedianya data terbaru."
     )
-
-    return Recommendation(
-        priority_level=priority,
-        summary=summary,
-        reasoning=reasoning,
-        action_items=action_items,
-        caveat=caveat,
-    )
+    
+    return {
+        "priority_level": parsed_json.get("priority_level"),
+        "summary": summary_text,
+        "reasoning": parsed_json.get("reasoning"),
+        "action_items": parsed_json.get("action_items", []),
+        "caveat": caveat_text
+    }

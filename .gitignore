@@ -9,3 +9,5 @@ node_modules/
 .next/
 *.joblib
 .DS_Store
+models/
+*.gguf
