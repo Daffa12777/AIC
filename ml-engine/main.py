@@ -5,12 +5,12 @@ from recommendation_engine.recommender import build_final_recommendation
 
 app = FastAPI()
 
-# Bikin format data yang fleksibel
+# Buat format data yang fleksibel
 class FactoryData(BaseModel):
     energy_insight: Dict[str, Any]
     cost: Dict[str, Any]
     anomaly_count: int
-    baseline: Optional[float] = 0.0  # <--- INI KUNCI PERBAIKANNYA (Ubah jadi float)
+    baseline: Optional[float] = 0.0  
 
 @app.post("/api/recommendation")
 def get_recommendation(data: FactoryData):

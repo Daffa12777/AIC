@@ -15,7 +15,7 @@ def generate_synthetic_data(num_samples=200):
     volatilities = ["rendah", "sedang", "tinggi"]
     
     for _ in range(num_samples):
-        # 1. Bikin data input acak (SKALA JUTAAN)
+        # 1. Bikin data input acak 
         energy_insight = {
             "trend_label": random.choice(trends),
             "volatility_label": random.choice(volatilities)
@@ -41,7 +41,7 @@ def generate_synthetic_data(num_samples=200):
             baseline_cost_per_unit=baseline
         )
         
-        # 3. Format Output HANYA 3 KUNCI (LLM nggak usah ngurusin teks baku)
+        # 3. Format Output hanya 3 
         output_json = {
             "priority_level": rec.priority_level,
             "reasoning": rec.reasoning,
@@ -75,4 +75,4 @@ def generate_synthetic_data(num_samples=200):
     print(f"Mantap! Berhasil membuat {num_samples} baris data sintetis baru yang sudah optimal di: {output_path}")
 
 if __name__ == "__main__":
-    generate_synthetic_data(200) # Cukup 200 sampel untuk MVP
+    generate_synthetic_data(200) 

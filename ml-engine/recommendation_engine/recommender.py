@@ -3,7 +3,6 @@ import re
 from llama_cpp import Llama
 import os
 
-# 1. Load Model GGUF
 MODEL_PATH = os.path.join(os.path.dirname(__file__), "../models/unsloth.Q4_K_M.gguf")
 
 llm = Llama(
@@ -15,7 +14,6 @@ llm = Llama(
 
 def extract_data_manually(text):
     """Fungsi Pemburu Teks: Ekstrak data secara paksa dari JSON yang rusak parah"""
-    # 1. Cari Prioritas
     priority = "Sedang"
     if re.search(r'(?i)tinggi', text): priority = "Tinggi"
     elif re.search(r'(?i)rendah', text): priority = "Rendah"
@@ -26,9 +24,7 @@ def extract_data_manually(text):
     if res_match:
         reasoning = res_match.group(1)
     
-    # 3. Cari Action Items
     action_items = []
-    # Memburu semua teks di dalam tanda kutip yang berada setelah kata action_items
     act_match = re.search(r'"action_items"\s*:\s*\[(.*)', text, re.IGNORECASE | re.DOTALL)
     if act_match:
         items_text = act_match.group(1)
@@ -47,7 +43,6 @@ def fix_and_parse_json(text):
     """Sistem Parsing Berlapis"""
     text = text.strip()
     
-    # Lapis 1: Coba parse normal (siapa tahu AI-nya sedang pintar)
     try:
         match = re.search(r'\{.*\}', text, re.DOTALL)
         if match:
@@ -55,7 +50,6 @@ def fix_and_parse_json(text):
     except:
         pass
         
-    # Lapis 2: Coba perbaiki kurung penutup yang hilang
     try:
         match = re.search(r'\{.*', text, re.DOTALL)
         if match:
@@ -66,7 +60,6 @@ def fix_and_parse_json(text):
     except:
         pass
         
-    # Lapis 3 (Terakhir): Kalau JSON tetap hancur, bedah teksnya secara paksa!
     return extract_data_manually(text)
 
 def generate_recommendation_from_llm(input_text):
