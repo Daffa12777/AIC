@@ -14,7 +14,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 RUN mkdir -p /app/models
 
-RUN wget -O /app/models/unsloth.Q4_K_M.gguf "https://huggingface.co/erlangram/qwen2.5_finetune_alumisight/resolve/main/unsloth.Q4_K_M.gguf?download=true"
+RUN wget -O /app/models/unsloth.Q4_K_M.gguf "https://huggingface.co/erlangram/qwen2.5_finetune_alumisight_v2/resolve/main/qwen2.5-1.5b-instruct.Q4_K_M.gguf?download=true"
 
 COPY . .
 
