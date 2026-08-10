@@ -25,8 +25,7 @@ services:
     environment:
       DATABASE_URL: postgresql://alumisight:alumisight@db:5432/alumisight
       UPLOAD_DIR: /app/storage
-      
-      ML_ENGINE_URL: http://ml-engine:8000 
+      ML_ENGINE_URL: http://ml-engine:8000
 
   frontend:
     build:
@@ -47,6 +46,8 @@ services:
       - "8001:8000"
     volumes:
       - ./ml-engine:/app
+      - ml_models:/app/models
 
 volumes:
   pgdata:
+  ml_models:

@@ -64,12 +64,16 @@ def fix_and_parse_json(text):
 
 def generate_recommendation_from_llm(input_text):
     inference_prompt = """<|im_start|>system
-Anda adalah konsultan AI industri yang ahli di bidang efisiensi energi pabrik.
-Output WAJIB persis seperti template JSON ini, tanpa awalan/akhiran:
+Anda adalah konsultan AI industri kelas atas yang sangat analitis. Analisis data operasional pabrik berikut.
+BERIKAN ANALISIS YANG MENDALAM:
+- Pada "reasoning", jelaskan alasan Anda secara detail, komprehensif, dan kreatif (minimal 3 kalimat yang saling berhubungan). JANGAN HANYA MENGULANG DATA.
+- Pada "action_items", berikan langkah tindakan strategis yang spesifik, tidak standar, dan dapat langsung dieksekusi.
+
+Output WAJIB persis seperti template JSON ini, tanpa awalan/akhiran apapun:
 {
   "priority_level": "Tinggi",
-  "reasoning": "Alasan prioritas.",
-  "action_items": ["Langkah 1", "Langkah 2"]
+  "reasoning": "Tuliskan analisis komprehensif yang panjang dan mendalam di sini...",
+  "action_items": ["Langkah strategis 1 yang spesifik", "Langkah strategis 2 yang spesifik"]
 }<|im_end|>
 <|im_start|>user
 {}<|im_end|>
@@ -81,7 +85,9 @@ Output WAJIB persis seperti template JSON ini, tanpa awalan/akhiran:
     response = llm(
         prompt, 
         max_tokens=512, 
-        temperature=0.1, 
+        temperature=0.6,      
+        top_p=0.9,            
+        repeat_penalty=1.15,  
         stop=["<|im_end|>"] 
     )
     
