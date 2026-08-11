@@ -1,5 +1,4 @@
 """Upload Service: menjembatani endpoint /upload dengan Smart Data Adapter."""
-import os
 from pathlib import Path
 
 import pandas as pd
@@ -7,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from data_adapter.adapter import run_smart_data_adapter
 from app.core.config import settings
-from app.db.models import Dataset, ActivityHistory
+from app.db.models import Dataset
 
 
 def save_and_process_upload(db: Session, filename: str, file_bytes: bytes) -> dict:
@@ -42,7 +41,6 @@ def save_and_process_upload(db: Session, filename: str, file_bytes: bytes) -> di
         is_valid=result.is_valid,
     )
     db.add(dataset)
-    db.add(ActivityHistory(dataset_id=dataset.id, action="upload", detail={"filename": filename}))
     db.commit()
     db.refresh(dataset)
 

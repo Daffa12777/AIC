@@ -1,6 +1,6 @@
 import type {
   UploadResult, ForecastResult, CostResult, AnomalyResult,
-  RecommendationResult, DashboardSummary,
+  RecommendationResult,
 } from "@/types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -75,9 +75,4 @@ export async function runRecommendation(
     body: JSON.stringify({ dataset_id: datasetId, period, horizon_days: horizonDays }),
   });
   return handle<RecommendationResult>(res);
-}
-
-export async function getDashboard(): Promise<DashboardSummary> {
-  const res = await fetch(`${API_URL}/dashboard/`);
-  return handle<DashboardSummary>(res);
 }

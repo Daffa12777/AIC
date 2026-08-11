@@ -1,9 +1,4 @@
-"use client";
-
-import { useEffect, useState } from "react";
 import Link from "next/link";
-import { getDashboard } from "@/lib/api";
-import type { DashboardSummary } from "@/types";
 
 const CAPABILITIES = [
   { title: "Prediksi Konsumsi Energi", desc: "Proyeksi pemakaian listrik per lini produksi berdasarkan pola historis." },
@@ -12,16 +7,7 @@ const CAPABILITIES = [
   { title: "Rekomendasi Operasional", desc: "Ringkasan keputusan dan langkah tindakan berbasis seluruh analisis." },
 ];
 
-export default function DashboardPage() {
-  const [summary, setSummary] = useState<DashboardSummary | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    getDashboard().then(setSummary).catch(() =>
-      setError("Gagal memuat data ringkasan. Pastikan layanan backend berjalan.")
-    );
-  }, []);
-
+export default function HomePage() {
   return (
     <div>
       {/* Hero */}
@@ -41,12 +27,6 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      {error && (
-        <div className="card-tint p-4 mb-8">
-          <p className="text-[14px] text-navy-700">{error}</p>
-        </div>
-      )}
-
       {/* Kapabilitas */}
       <section className="mb-16">
         <p className="eyebrow mb-6">Kapabilitas Sistem</p>
@@ -64,7 +44,6 @@ export default function DashboardPage() {
           ))}
         </div>
       </section>
-
     </div>
   );
 }

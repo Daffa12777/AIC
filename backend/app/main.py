@@ -8,8 +8,8 @@ from pathlib import Path
 
 # --- Pastikan ml-engine (tempat data_adapter) ada di sys.path ---
 _HERE = Path(__file__).resolve()
-_ROOT = _HERE.parents[2]                    # E:\RISETCPS\AlumiSight-AI
-for _p in (_HERE.parents[1], _ROOT / "ml-engine"):   # backend\  &  ml-engine\
+_ROOT = _HERE.parents[2]
+for _p in (_HERE.parents[1], _ROOT / "ml-engine"):
     _p = str(_p)
     if _p not in sys.path:
         sys.path.insert(0, _p)
@@ -34,8 +34,8 @@ app = FastAPI(title=settings.APP_NAME, version=settings.APP_VERSION)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=settings.CORS_ORIGINS,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )

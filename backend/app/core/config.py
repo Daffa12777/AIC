@@ -13,6 +13,9 @@ class Settings(BaseSettings):
     DEFAULT_FORECAST_HORIZON_DAYS: int = 30
     DEFAULT_ENERGY_TARIFF: float = 1400.0
 
+    # Origin frontend yang diizinkan mengakses API.
+    CORS_ORIGINS: list[str] = ["http://localhost:3000"]
+
     class Config:
         env_file = ".env"
         extra = "ignore"

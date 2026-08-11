@@ -131,14 +131,3 @@ class RecommendationResponse(BaseModel):
     reasoning: str
     action_items: list[str]
     caveat: str
-
-
-# ---------- Dashboard ----------
-
-class DashboardSummary(BaseModel):
-    total_datasets: int
-    total_forecasts_run: int
-    total_cost_analyses: int
-    total_anomaly_scans: int
-    total_recommendations: int
-    recent_activity: list[dict]

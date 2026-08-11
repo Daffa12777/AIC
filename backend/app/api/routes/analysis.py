@@ -1,4 +1,4 @@
-"""Endpoint analisis: forecast energi, cost, anomaly, recommendation, dashboard."""
+"""Endpoint analisis sinkron: forecast energi, cost, anomaly, recommendation."""
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -8,11 +8,10 @@ from app.schemas.schemas import (
     CostRequest, CostResponse,
     AnomalyRequest, AnomalyResponse,
     RecommendationRequest, RecommendationResponse,
-    DashboardSummary,
 )
 from app.services.forecast_service import run_forecast
 from app.services.analysis_service import (
-    run_cost_analysis, run_anomaly_scan, run_recommendation, get_dashboard_summary,
+    run_cost_analysis, run_anomaly_scan, run_recommendation,
 )
 from app.core.exceptions import DatasetValidationError, ModelNotTrainedError
 
@@ -57,8 +56,3 @@ def recommend(req: RecommendationRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=422, detail=e.message)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.get("/dashboard/", response_model=DashboardSummary)
-def dashboard(db: Session = Depends(get_db)):
-    return get_dashboard_summary(db)

@@ -92,12 +92,3 @@ export interface RecommendationResult {
   action_items: string[];
   caveat: string;
 }
-
-export interface DashboardSummary {
-  total_datasets: number;
-  total_forecasts_run: number;
-  total_cost_analyses: number;
-  total_anomaly_scans: number;
-  total_recommendations: number;
-  recent_activity: Record<string, unknown>[];
-}

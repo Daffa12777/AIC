@@ -24,8 +24,8 @@ Tidak perlu memasang Python, Node.js, atau PostgreSQL secara manual — semuanya
 Proyek terdiri atas tiga komponen modular:
 
 - **`ml-engine/`** — Mesin AI: Smart Data Adapter, Forecast Engine (energi), Cost Estimator, Anomaly Detection (Isolation Forest), Recommendation Engine, dan Insight Generator.
-- **`backend/`** — REST API berbasis FastAPI yang mengorkestrasi ML Engine dan menyimpan riwayat analisis.
-- **`frontend/`** — Dashboard berbasis Next.js + TypeScript + Tailwind CSS.
+- **`backend/`** — REST API berbasis FastAPI yang mengorkestrasi ML Engine secara sinkron (tanpa penyimpanan riwayat penggunaan).
+- **`frontend/`** — Antarmuka input tunggal → output AI berbasis Next.js + TypeScript + Tailwind CSS.
 
 ---
 

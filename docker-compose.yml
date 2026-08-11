@@ -13,6 +13,13 @@ services:
       timeout: 5s
       retries: 5
 
+  ml-engine:
+    build:
+      context: ./ml-engine
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8000"
+
   backend:
     build:
       context: .
@@ -20,6 +27,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      ml-engine:
+        condition: service_started
     ports:
       - "8000:8000"
     environment:
@@ -38,16 +47,5 @@ services:
     environment:
       NEXT_PUBLIC_API_URL: http://localhost:8000
 
-  ml-engine:
-    build:
-      context: ./ml-engine
-      dockerfile: Dockerfile
-    ports:
-      - "8001:8000"
-    volumes:
-      - ./ml-engine:/app
-      - ml_models:/app/models
-
 volumes:
   pgdata:
-  ml_models:
