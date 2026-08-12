@@ -66,7 +66,7 @@ def generate_recommendation_from_llm(input_text):
     inference_prompt = """<|im_start|>system
 Anda adalah konsultan AI industri kelas atas yang sangat analitis. Analisis data operasional pabrik berikut.
 BERIKAN ANALISIS YANG MENDALAM:
-- Pada "reasoning", jelaskan alasan Anda secara detail, komprehensif, dan kreatif (minimal 3 kalimat yang saling berhubungan). JANGAN HANYA MENGULANG DATA.
+- Pada "reasoning", jelaskan alasan Anda secara detail, komprehensif, dan kreatif (minimal 3 kalimat yang saling berhubungan). 
 - Pada "action_items", berikan langkah tindakan strategis yang spesifik, tidak standar, dan dapat langsung dieksekusi.
 
 ATURAN MUTLAK: Kamu harus mengekstrak angka metrik dan anomali persis 100% seperti yang tertera pada data input. DILARANG KERAS mengarang, membulatkan, atau mengubah angka apa pun dalam alasanmu.
@@ -110,7 +110,7 @@ def build_final_recommendation(energy_insight, cost, anomaly_count, baseline):
         f"- Estimasi Biaya/Unit: {cost_str}\n"
         f"- Baseline Biaya/Unit: {baseline_str}\n"
         f"- Pangsa Biaya Energi Terhadap Total Produksi: {int(cost.get('energy_cost_share', 0) * 100)}%\n"
-        f"- Jumlah Anomali Mesin Terdeteksi: {anomaly_count}"
+        f"- Jumlah Anomali Konsumsi Energi Terdeteksi: {anomaly_count}"
     )
 
     try:
