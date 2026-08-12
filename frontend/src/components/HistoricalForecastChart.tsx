@@ -126,7 +126,7 @@ export default function HistoricalForecastChart({
             Historis
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="inline-block w-5 h-0.5 border-t-2 border-dashed border-amber-600" />
+            <span className="inline-block w-5 h-0.5 bg-amber-600 rounded" />
             Proyeksi
           </span>
         </div>
@@ -213,7 +213,6 @@ export default function HistoricalForecastChart({
             dataKey="forecast"
             stroke="#D97706"
             strokeWidth={2}
-            strokeDasharray="6 4"
             dot={false}
             connectNulls={false}
             name="forecast"
