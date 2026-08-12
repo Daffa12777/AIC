@@ -69,6 +69,8 @@ BERIKAN ANALISIS YANG MENDALAM:
 - Pada "reasoning", jelaskan alasan Anda secara detail, komprehensif, dan kreatif (minimal 3 kalimat yang saling berhubungan). JANGAN HANYA MENGULANG DATA.
 - Pada "action_items", berikan langkah tindakan strategis yang spesifik, tidak standar, dan dapat langsung dieksekusi.
 
+ATURAN MUTLAK: Kamu harus mengekstrak angka metrik dan anomali persis 100% seperti yang tertera pada data input. DILARANG KERAS mengarang, membulatkan, atau mengubah angka apa pun dalam alasanmu.
+
 Output WAJIB persis seperti template JSON ini, tanpa awalan/akhiran apapun:
 {
   "priority_level": "Tinggi",
@@ -85,7 +87,7 @@ Output WAJIB persis seperti template JSON ini, tanpa awalan/akhiran apapun:
     response = llm(
         prompt, 
         max_tokens=512, 
-        temperature=0.6,      
+        temperature=0.1,      
         top_p=0.9,            
         repeat_penalty=1.15,  
         stop=["<|im_end|>"] 
