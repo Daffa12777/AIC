@@ -28,7 +28,7 @@ class UploadResponse(BaseModel):
 class ForecastRequest(BaseModel):
     dataset_id: str
     periods: list[str] | None = None
-    horizon_days: int = Field(default=30, ge=1, le=180)
+    horizon_days: int = Field(default=30, ge=1, le=365)
     retrain: bool = False
 
 
@@ -64,7 +64,7 @@ class ForecastResponse(BaseModel):
 class CostRequest(BaseModel):
     dataset_id: str
     period: str
-    horizon_days: int = Field(default=30, ge=1, le=180)
+    horizon_days: int = Field(default=30, ge=1, le=365)
     energy_tariff: float | None = None
 
 
@@ -120,7 +120,7 @@ class AnomalyResponse(BaseModel):
 class RecommendationRequest(BaseModel):
     dataset_id: str
     period: str
-    horizon_days: int = Field(default=30, ge=1, le=180)
+    horizon_days: int = Field(default=30, ge=1, le=365)
 
 
 class RecommendationResponse(BaseModel):
