@@ -10,7 +10,7 @@ COLUMN_SYNONYMS = {
     ],
     "period": [
         "period", "periode", "lini", "line", "lini produksi", "production line",
-        "shift", "batch", "kode periode", "id periode", "unit", "pot line", "potline",
+        "kode periode", "id periode", "unit", "pot line", "potline",
     ],
     "energy": [
         "energy", "energi", "konsumsi energi", "energy consumption", "kwh",
