@@ -6,7 +6,7 @@ import type { AnomalyResult } from "@/types";
 
 export default function AnomalyPage() {
   const [datasetId, setDatasetId] = useState("");
-  const [period, setPeriod] = useState("line-1");
+  const [period, setPeriod] = useState("POT-A");
   const [result, setResult] = useState<AnomalyResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

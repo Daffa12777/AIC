@@ -18,7 +18,7 @@ const VOL_BADGE: Record<string, string> = {
 
 export default function ForecastPage() {
   const [datasetId, setDatasetId] = useState("");
-  const [period, setPeriod] = useState("line-1");
+  const [period, setPeriod] = useState("POT-A");
   const [horizon, setHorizon] = useState(30);
   const [result, setResult] = useState<ForecastResult | null>(null);
   const [loading, setLoading] = useState(false);
@@ -73,7 +73,7 @@ export default function ForecastPage() {
           <div>
             <label className="field-label">Lini Produksi</label>
             <input value={period} onChange={(e) => setPeriod(e.target.value)}
-              placeholder="mis. line-1" className="input-field" />
+              placeholder="mis. POT-A" className="input-field" />
           </div>
           <div>
             <label className="field-label">Horizon Proyeksi (hari)</label>

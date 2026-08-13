@@ -12,7 +12,7 @@ const PRIORITY: Record<string, string> = {
 
 export default function RecommendationPage() {
   const [datasetId, setDatasetId] = useState("");
-  const [period, setPeriod] = useState("line-1");
+  const [period, setPeriod] = useState("POT-A");
   const [horizon, setHorizon] = useState(30);
   const [result, setResult] = useState<RecommendationResult | null>(null);
   const [loading, setLoading] = useState(false);
@@ -54,7 +54,8 @@ export default function RecommendationPage() {
         <div className="grid grid-cols-2 gap-5">
           <div>
             <label className="field-label">Lini Produksi</label>
-            <input value={period} onChange={(e) => setPeriod(e.target.value)} className="input-field" />
+            <input value={period} onChange={(e) => setPeriod(e.target.value)}
+              placeholder="mis. POT-A" className="input-field" />
           </div>
           <div>
             <label className="field-label">Horizon Proyeksi (hari)</label>

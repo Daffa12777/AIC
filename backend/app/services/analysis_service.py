@@ -59,10 +59,15 @@ def run_anomaly_scan(db: Session, dataset_id: str, period: str | None) -> dict:
     if len(anomalies) == 0:
         narrative = "Tidak terdeteksi anomali konsumsi energi yang signifikan pada data ini."
     else:
+        # FIX #7 (defensive): cari deviasi ABSOLUT terbesar secara eksplisit.
+        # Detector saat ini sudah sort desc by |deviation_pct|, tetapi eksplisit
+        # di sini mencegah bug jika perilaku sort detector berubah di masa depan.
+        top_anomaly = max(anomalies, key=lambda a: abs(a.deviation_pct))
+
         scope = f"pada {period}" if period else "pada seluruh lini produksi"
         narrative = (
             f"Terdeteksi {len(anomalies)} titik konsumsi energi anomali {scope}. Anomali dengan deviasi "
-            f"terbesar mencapai {anomalies[0].deviation_pct:+.1f}% dari rata-rata historis, yang perlu "
+            f"terbesar mencapai {top_anomaly.deviation_pct:+.1f}% dari rata-rata historis, yang perlu "
             f"ditelusuri sebagai indikasi potensi pemborosan energi atau gangguan operasional."
         )
 
@@ -80,7 +85,14 @@ def run_recommendation(db: Session, dataset_id: str, period: str, horizon_days: 
     sub = clean[clean["period"] == period]
 
     forecast_energy = forecast_df["energy"].tolist()
-    energy_insight = generate_energy_insight(pd.Series(forecast_energy).values, None, None)
+
+    # FIX #6: trend & volatility dihitung dari data HISTORIS (bukan forecast).
+    # Alasan: model tree-based (RF/XGB/LGBM) pada recursive forecasting cenderung
+    # konvergen ke mean untuk horizon panjang, sehingga forecast selalu tampak
+    # "stabil + volatilitas rendah" meskipun realita historis bergejolak. Insight
+    # yang dikirim ke LLM harus mencerminkan kondisi data nyata, bukan artefak model.
+    historical_energy = sub["energy"].values
+    energy_insight = generate_energy_insight(historical_energy, None, None)
 
     if hasattr(energy_insight, "model_dump"):
         energy_insight_dict = energy_insight.model_dump()

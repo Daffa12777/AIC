@@ -102,7 +102,7 @@ def generate_cost_insight(cost: dict) -> dict:
             f"Efisiensi energi menjadi faktor paling menentukan dalam menekan biaya per satuan produksi."
         )
         note = (
-            "Karena energi menjadi komponen biaya terbesar, prioritaskan optimasi konsumsi energi — "
+            "Karena energi menjadi komponen biaya terbesar, prioritaskan optimasi konsumsi energi"
             "sekecil apa pun penghematan akan berdampak besar secara akumulatif."
         )
     elif energy_share >= 0.3:
