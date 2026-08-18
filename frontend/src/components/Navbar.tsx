@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -18,10 +19,13 @@ export default function Navbar() {
   return (
     <header className="bg-cream-50/95 backdrop-blur border-b border-cream-300 sticky top-0 z-20">
       <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-        <Link href="/" className="flex items-baseline gap-2.5">
-          <span className="text-[22px] text-navy-900 tracking-tight">AlumiSight AI</span>
-          <span className="hidden md:inline text-[11px] uppercase tracking-eyebrow text-steel-300">
-            Energy Intelligence
+        <Link href="/" className="flex items-center gap-2.5">
+          <Image src="/Alumisight (1).png" alt="AlumiSight AI" width={28} height={28} priority />
+          <span className="flex items-baseline gap-2.5">
+            <span className="text-[22px] text-navy-900 tracking-tight">AlumiSight AI</span>
+            <span className="hidden md:inline text-[11px] uppercase tracking-eyebrow text-steel-300">
+              Energy Intelligence
+            </span>
           </span>
         </Link>
         <nav className="flex items-center gap-0.5 overflow-x-auto">

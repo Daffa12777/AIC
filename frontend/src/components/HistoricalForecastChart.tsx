@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, ReferenceLine, Legend,
@@ -11,7 +11,7 @@ export interface TimeSeriesInput {
   value: number;
 }
 
-type Granularity = "day" | "month";
+//type Granularity = "day" | "month";
 
 interface Props {
   historical: TimeSeriesInput[];
@@ -21,37 +21,33 @@ interface Props {
   yAxisFormatter?: (v: number) => string;
 }
 
-function monthKey(dateStr: string): string {
-  const d = new Date(dateStr);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-}
+//function monthKey(dateStr: string): string {
+//  const d = new Date(dateStr);
+//  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+//}
 
-function formatDateLabel(dateStr: string, granularity: Granularity): string {
+function formatDateLabel(dateStr: string): string {
   const d = new Date(dateStr);
-  if (granularity === "month") {
-    return d.toLocaleDateString("id-ID", { month: "short", year: "numeric" });
-  }
   return d.toLocaleDateString("id-ID", { day: "2-digit", month: "short" });
 }
 
-function aggregateByMonth(points: TimeSeriesInput[]): TimeSeriesInput[] {
-  const buckets = new Map<string, number>();
-  for (const p of points) {
-    const key = monthKey(p.date);
-    buckets.set(key, (buckets.get(key) ?? 0) + p.value);
-  }
-  return Array.from(buckets.entries())
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([key, value]) => ({ date: `${key}-01`, value }));
-}
+//function aggregateByMonth(points: TimeSeriesInput[]): TimeSeriesInput[] {
+//  const buckets = new Map<string, number>();
+//  for (const p of points) {
+//    const key = monthKey(p.date);
+//    buckets.set(key, (buckets.get(key) ?? 0) + p.value);
+//  }
+ // return Array.from(buckets.entries())
+ //   .sort(([a], [b]) => a.localeCompare(b))
+ //   .map(([key, value]) => ({ date: `${key}-01`, value }));
+//}
 
 function buildChartData(
   historical: TimeSeriesInput[],
   forecast: TimeSeriesInput[],
-  granularity: Granularity,
 ) {
-  const hist = granularity === "month" ? aggregateByMonth(historical) : historical;
-  const fcst = granularity === "month" ? aggregateByMonth(forecast) : forecast;
+  const hist = historical;
+  const fcst = forecast;
 
   const dateMap = new Map<string, { date: string; actual: number | null; forecast: number | null }>();
 
@@ -97,19 +93,17 @@ export default function HistoricalForecastChart({
   formatValue = (v) => v.toLocaleString("id-ID"),
   yAxisFormatter,
 }: Props) {
-  const [granularity, setGranularity] = useState<Granularity>("day");
-
+  
   const chartData = useMemo(
-    () => buildChartData(historical, forecast, granularity),
-    [historical, forecast, granularity],
-  );
+  () => buildChartData(historical, forecast),
+  [historical, forecast],
+);
 
   const boundaryLabel = useMemo(() => {
     if (historical.length === 0) return null;
-    const hist = granularity === "month" ? aggregateByMonth(historical) : historical;
-    const lastHist = hist[hist.length - 1];
+    const lastHist = historical[historical.length - 1];
     return lastHist.date.split("T")[0];
-  }, [historical, granularity]);
+  }, [historical]);
 
   const yFmt = yAxisFormatter ?? ((v: number) => formatValue(v));
 
@@ -119,41 +113,15 @@ export default function HistoricalForecastChart({
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-4 text-[12px] text-steel-400">
-          <span className="flex items-center gap-1.5">
-            <span className="inline-block w-5 h-0.5 bg-navy-800 rounded" />
-            Historis
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="inline-block w-5 h-0.5 bg-amber-600 rounded" />
-            Proyeksi
-          </span>
-        </div>
-        <div className="flex rounded-lg border border-cream-300 overflow-hidden text-[13px]">
-          <button
-            type="button"
-            onClick={() => setGranularity("day")}
-            className={`px-3.5 py-1.5 transition-colors ${
-              granularity === "day"
-                ? "bg-navy-800 text-cream-50"
-                : "bg-white text-steel-400 hover:bg-cream-50"
-            }`}
-          >
-            Harian
-          </button>
-          <button
-            type="button"
-            onClick={() => setGranularity("month")}
-            className={`px-3.5 py-1.5 transition-colors border-l border-cream-300 ${
-              granularity === "month"
-                ? "bg-navy-800 text-cream-50"
-                : "bg-white text-steel-400 hover:bg-cream-50"
-            }`}
-          >
-            Bulanan
-          </button>
-        </div>
+      <div className="flex items-center gap-4 text-[12px] text-steel-400 mb-4">
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block w-5 h-0.5 bg-navy-800 rounded" />
+          Historis
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block w-5 h-0.5 bg-amber-600 rounded" />
+          Proyeksi
+        </span>
       </div>
 
       <ResponsiveContainer width="100%" height={320}>
@@ -161,13 +129,13 @@ export default function HistoricalForecastChart({
           <CartesianGrid strokeDasharray="3 3" stroke="#EDE7DA" />
           <XAxis
             dataKey="date"
-            tickFormatter={(val) => formatDateLabel(val, granularity)}
+            tickFormatter={(val) => formatDateLabel(val)}
             fontSize={11}
             stroke="#6B7883"
             interval="preserveStartEnd"
-            angle={granularity === "day" && chartData.length > 20 ? -35 : 0}
-            textAnchor={granularity === "day" && chartData.length > 20 ? "end" : "middle"}
-            height={granularity === "day" && chartData.length > 20 ? 55 : 30}
+            angle={chartData.length > 20 ? -35 : 0}
+            textAnchor={chartData.length > 20 ? "end" : "middle"}
+            height={chartData.length > 20 ? 55 : 30}
           />
           <YAxis
             fontSize={12}
@@ -176,7 +144,7 @@ export default function HistoricalForecastChart({
             tickFormatter={yFmt}
           />
           <Tooltip
-            labelFormatter={(label) => formatDateLabel(label as string, granularity)}
+            labelFormatter={(label) => formatDateLabel(label as string)}
             contentStyle={{
               fontFamily: "Times New Roman",
               borderColor: "#DDD4C2",
